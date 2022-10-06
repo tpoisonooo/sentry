@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">阿柴</string>
+    <string name="camera_permission_title">Camera permission required</string>
+    <string name="camera_permission_message">This app uses camera only for object detection, the information from your camera is not sent or collected anywhere else</string>
+</resources>
