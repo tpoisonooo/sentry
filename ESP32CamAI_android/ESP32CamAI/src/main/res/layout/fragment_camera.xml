@@ -11,15 +11,26 @@
         android:layout_height="match_parent"
         android:layout_weight="1.25">
 
-        <Button
-            android:id="@+id/objTrackBtn"
-            android:layout_width="wrap_content"
-            android:layout_height="80dp"
-            android:layout_gravity="center"
-            android:background="@drawable/my_button_bg"
-            android:textColor="#ffffff"
-            android:minHeight="80dip"
-            android:text="Tracking" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:orientation="vertical"
+            android:layout_height="wrap_content">
+            <Button
+                android:id="@+id/btn_track"
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:background="@drawable/my_button_bg"
+                android:textColor="#ffffff"
+                android:minHeight="80dip"
+                android:text="自动跟踪目标" />
+
+            <TextView
+                android:id="@+id/tv_track"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="跟踪状态-"/>
+        </LinearLayout>
+
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -58,31 +69,62 @@
             android:gravity="center|center_vertical" />
     </FrameLayout>
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight="1.25"
-        android:gravity="center_horizontal"
-        android:orientation="vertical">
+        android:layout_weight="1.25">
 
-        <Button
-            android:id="@+id/streamBtn"
+        <com.makeramen.roundedimageview.RoundedImageView
+            android:id="@+id/riv_fire"
+            android:layout_alignParentBottom="true"
             android:layout_width="wrap_content"
-            android:layout_height="75dp"
-            android:layout_gravity="center"
-            android:background="@drawable/my_button_bg"
-            android:minHeight="80dip"
-            android:textColor="#ffffff"
-            android:text="Stream" />
-        <Button
-            android:id="@+id/ledBtn"
+            android:layout_height="wrap_content"
+            android:src="@mipmap/fire"/>
+
+
+        <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="75dp"
-            android:layout_gravity="center"
-            android:background="@drawable/my_button_bg"
-            android:minHeight="80dip"
-            android:textColor="#ffffff"
-            android:text="LED" />
-    </LinearLayout>
+            android:orientation="vertical"
+            android:layout_centerInParent="true"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="炮口↑↓"/>
+
+            <ImageButton
+                android:id="@+id/ibtn_barrel_up"
+                android:layout_width="wrap_content"
+                android:src="@mipmap/barrel_up"
+                android:layout_height="wrap_content"/>
+
+            <ImageButton
+                android:id="@+id/ibtn_barrel_down"
+                android:layout_width="wrap_content"
+                android:src="@mipmap/barrel_down"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_alignParentTop="true"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/streamBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="75dp"
+                android:layout_gravity="center"
+                android:background="@drawable/my_button_bg"
+                android:minHeight="80dip"
+                android:textColor="#ffffff"
+                android:text="连接设备" />
+
+        </LinearLayout>
+
+    </RelativeLayout>
 
 </LinearLayout>

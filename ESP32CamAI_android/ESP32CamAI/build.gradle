@@ -39,4 +39,5 @@ dependencies {
     implementation('org.tensorflow:tensorflow-lite:0.0.0-nightly') { changing = true }
     implementation 'org.tensorflow:tensorflow-lite-gpu:0.0.0-nightly'
     compile "org.java-websocket:Java-WebSocket:1.5.1"
+    compile 'com.makeramen:roundedimageview:2.3.0'
 }

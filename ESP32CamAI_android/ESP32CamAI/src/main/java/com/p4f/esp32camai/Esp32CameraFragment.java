@@ -26,6 +26,7 @@ import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
+import com.makeramen.roundedimageview.RoundedImageView;
 import com.zerokol.views.joystickView.JoystickView;
 
 import org.java_websocket.client.WebSocketClient;
@@ -42,16 +43,13 @@ public class Esp32CameraFragment extends Fragment{
 
     // start preview camera
     final byte[] mRequestConnect      = new byte[]{'w','h','o','a','m','i'};
-    // led
-    final byte[] mLedOn = new byte[]{'l','e','d','o','n'};
-    final byte[] mLedOff = new byte[]{'l','e','d','o','f','f'};
+    final byte[] mFire = new byte[]{'f','i','r','e'};
 
     ImageView mServerImageView;
 
     private WebSocketClient mWebSocketClient;
     private String mServerExactAddress;
     private boolean mStream = false;
-    private boolean mLed = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -121,21 +119,11 @@ public class Esp32CameraFragment extends Fragment{
             }
         });
 
-        Button ledBtn = (Button) rootView.findViewById(R.id.ledBtn);
-        ledBtn.setOnClickListener(new View.OnClickListener(){
+        RoundedImageView rivFire = (RoundedImageView) rootView.findViewById(R.id.riv_fire);
+        rivFire.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
-                if (!mLed) {
-                    mLed = true;
-                    ((Button) getActivity().findViewById(R.id.ledBtn)).setBackgroundResource(R.drawable.my_button_bg_2);
-                    ((Button) getActivity().findViewById(R.id.ledBtn)).setTextColor(Color.rgb(0,0,255));
-                    mUdpClient.sendBytes(mServerAddr, mServerPort, mLedOn);
-                }else{
-                    mLed = false;
-                    ((Button) getActivity().findViewById(R.id.ledBtn)).setBackgroundResource(R.drawable.my_button_bg);
-                    ((Button) getActivity().findViewById(R.id.ledBtn)).setTextColor(Color.rgb(255,255,255));
-                    mUdpClient.sendBytes(mServerAddr, mServerPort, mLedOff);
-                }
+                mUdpClient.sendBytes(mServerAddr, mServerPort, mFire);
             }
         });
 

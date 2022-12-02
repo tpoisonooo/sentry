@@ -11,6 +11,7 @@ public class DirectHelper {
     private static int pwm1 = 0;
     private static int FAST = 2;
     private static int SLOW = 1;
+
     private static int MIN = 6;
     private static int MAX = 32;
 
