@@ -114,7 +114,7 @@
             android:orientation="vertical">
 
             <Button
-                android:id="@+id/streamBtn"
+                android:id="@+id/btn_stream"
                 android:layout_width="wrap_content"
                 android:layout_height="75dp"
                 android:layout_gravity="center"
@@ -122,6 +122,16 @@
                 android:minHeight="80dip"
                 android:textColor="#ffffff"
                 android:text="连接设备" />
+
+            <Button
+                android:id="@+id/btn_laser"
+                android:layout_width="wrap_content"
+                android:layout_height="75dp"
+                android:layout_gravity="center"
+                android:background="@drawable/my_button_bg"
+                android:minHeight="80dip"
+                android:textColor="#ffffff"
+                android:text="激光" />
 
         </LinearLayout>
 

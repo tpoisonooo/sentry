@@ -38,8 +38,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // const char* ssid = "ziroom105";
 // const char* password = "ziroomer002";
 
-const char* ssid = "haliluqiuqiuhayaya";
-const char* password = "77552100";
+const char* ssid = "linglong";
+const char* password = "12345678";
+
+// const char* ssid = "haliluqiuqiuhayaya";
+// const char* password = "77552100";
 //holds the current upload
 int cameraInitState = -1;
 uint8_t* jpgBuff = new uint8_t[68123];
@@ -65,22 +68,28 @@ unsigned long previousMillisServo = 0;
 const unsigned long intervalServo = 10;
 
 // I2C display
+// IO15 --- SDA
+// IO14 --- SCL
 SSD1306 display(0x3c, 15, 14);
 
 // pwm
 #define PWM0_CHANNEL (0)
-#define PWM1_CHANNEL (2)
+#define PWM1_CHANNEL (1)
+#define PWM2_CHANNEL (2)
+#define PWM3_CHANNEL (3)
+#define PWM4_CHANNEL (4)
+#define PWM5_CHANNEL (5)
+
 
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
 
+  // 消息类型
   switch(type) {
       case WStype_DISCONNECTED:
-          Serial.printf("[%u] Disconnected!\n", num);
           camNo = num;
           clientConnected = false;
           break;
       case WStype_CONNECTED:
-          Serial.printf("[%u] Connected!\n", num);
           clientConnected = true;
           break;
       case WStype_TEXT:
@@ -135,6 +144,9 @@ void processUDPData(){
         digitalWrite(LED_BUILT_IN, LOW);
       }
       // control
+      // pwmX占空比
+      // pwm095
+      // pwm188
       else if(packetBuffer[0] == 'p' && packetBuffer[1]=='w' && packetBuffer[2]=='m') {
         int duty = parse_int32(packetBuffer + 4);
         int channel = PWM0_CHANNEL;
@@ -142,7 +154,7 @@ void processUDPData(){
         if (packetBuffer[3] == '1') {
           channel = PWM1_CHANNEL;
           display.drawString(0, 48, String(packetBuffer, 4)+String(duty));
-        } else {
+        } else{
           display.drawString(0, 32, String(packetBuffer, 4)+String(duty));
         }
         duty = max(0, min(255, duty));
@@ -156,26 +168,71 @@ void processUDPData(){
 
 }
 
+// one function one job
+// 一个函数，只做一件事
+// 一个函数，不要做一堆事
+// 设置 PWM 
 void setup_pwm() {
   display.drawString(0,0,"pwm self-testing..");
+  // 对象，表示 显示器
+  // .display() 函数，
   display.display();
 
   #define LED_GPIO0   13
   #define LED_GPIO1   12
+  #define LED_GPIO2   2
+  #define LED_GPIO4   16
+  #define LED_GPIO5   0
+
+
+  // pin 引脚
+  // Mode 
   pinMode(LED_GPIO0, OUTPUT);
   pinMode(LED_GPIO1, OUTPUT);
-  
+  pinMode(LED_GPIO2, OUTPUT);
+  pinMode(LED_GPIO4, OUTPUT);
+  pinMode(LED_GPIO5, OUTPUT);
+
+  // PWM 不是硬件实现的 PWM
+  // 要软件控制器
+  // 15
+  // ledc   LED controller
+  // 输出的控制器， attach 附加， pin 管脚
+  // 
   ledcAttachPin(LED_GPIO0, PWM0_CHANNEL);
   ledcAttachPin(LED_GPIO1, PWM1_CHANNEL);
+  ledcAttachPin(LED_GPIO2, PWM2_CHANNEL);
+  ledcAttachPin(LED_GPIO4, PWM4_CHANNEL);
+  ledcAttachPin(LED_GPIO5, PWM5_CHANNEL);
+
+  //1s /  50 Hz   =  PWM 20ms , PWM 一个周期
+  // 8 精度， 用 8 个比特表达 PWM 控制精度
+  // 0~255 个数值
+  // 255 ==  100% 占空比
+  // 0 == 0% 占空比
+  // 1 == 1/255 % 占空比
+  // 能控制多么细
+
   ledcSetup(PWM0_CHANNEL, 50, 8);
   ledcSetup(PWM1_CHANNEL, 50, 8);
+  ledcSetup(PWM2_CHANNEL, 50, 8);
+  ledcSetup(PWM4_CHANNEL, 50, 8);
+  ledcSetup(PWM5_CHANNEL, 50, 8);
+
 
   int duty=0;
   while(duty < 256)
   {
+
     ledcWrite(PWM0_CHANNEL, duty);
     delay(10);
     ledcWrite(PWM1_CHANNEL, duty);
+    delay(10);
+    ledcWrite(PWM2_CHANNEL, duty);
+    delay(10);
+    ledcWrite(PWM4_CHANNEL, duty);
+    delay(10);
+    ledcWrite(PWM5_CHANNEL, duty);
     delay(10);
     duty++;
   }
@@ -189,7 +246,7 @@ void setup(void) {
 
   // init display
   display.init();
-  
+
   // init pwm
   setup_pwm();
 
@@ -231,10 +288,14 @@ void setup(void) {
   Serial.println(WiFi.localIP().toString());
 
   // start websocket to send Image
+  // http/https --> 不会数据丢失，代价是速度慢、发热
+  // 
+  // tcp/udp  -->  速度快，代码不好写
+  // websocket: 一种 tcp 协议的服务后端
   webSocket.begin();
-  webSocket.onEvent(webSocketEvent);
+  webSocket.onEvent(webSocketEvent); // 返回摄像头数据
 
-  UDPServer.begin(UDPPort); 
+  UDPServer.begin(UDPPort);  // 服务处理控制数据， PWM + 开关
 }
 
 void loop(void) {

@@ -13,6 +13,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -44,12 +45,15 @@ public class Esp32CameraFragment extends Fragment{
     // start preview camera
     final byte[] mRequestConnect      = new byte[]{'w','h','o','a','m','i'};
     final byte[] mFire = new byte[]{'f','i','r','e'};
+    final byte[] mLaserOn = new byte[]{'l','a','z','e', 'r', 'o', 'n'};
+    final byte[] mLaserOff = new byte[]{'l','a','z','e', 'r', 'o', 'f', 'f'};
 
     ImageView mServerImageView;
 
     private WebSocketClient mWebSocketClient;
     private String mServerExactAddress;
     private boolean mStream = false;
+    private boolean mLaser = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -74,7 +78,59 @@ public class Esp32CameraFragment extends Fragment{
         View rootView = inflater.inflate(R.layout.fragment_camera, parent, false);
 
         mServerImageView = (ImageView)rootView.findViewById(R.id.imageView);
-        Button streamBtn = (Button) rootView.findViewById(R.id.streamBtn);
+        Button lazerBtn = (Button) rootView.findViewById(R.id.btn_laser);
+        lazerBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v){
+                if (!SingleClick.available()) {
+                    return;
+                }
+
+                if (!mLaser) {
+                    ((Button) getActivity().findViewById(R.id.btn_laser)).setBackgroundResource(R.drawable.my_button_bg_2);
+                    ((Button) getActivity().findViewById(R.id.btn_laser)).setTextColor(Color.rgb(0,0,255));
+                    mLaser = true;
+                    mUdpClient.sendBytes(mServerAddr, mServerPort, mLaserOn);
+                } else{
+                    ((Button) getActivity().findViewById(R.id.btn_laser)).setBackgroundResource(R.drawable.my_button_bg);
+                    ((Button) getActivity().findViewById(R.id.btn_laser)).setTextColor(Color.rgb(255,255,255));
+                    mLaser = false;
+                    mUdpClient.sendBytes(mServerAddr, mServerPort, mLaserOff);
+                }
+            }
+        });
+
+        ImageButton ibtnUp = (ImageButton) rootView.findViewById(R.id.ibtn_barrel_up);
+        ibtnUp.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (!SingleClick.available()) {
+                    return;
+                }
+                ArrayList<byte[]> cmds = DirectHelper.camera_up();
+                for (byte[] x : cmds){
+                    Log.e("barrel_up", x.toString());
+                    mUdpClient.sendBytes(mServerAddr, mServerPort, x);
+                }
+            }
+        });
+
+        ImageButton ibtnDown = (ImageButton) rootView.findViewById(R.id.ibtn_barrel_down);
+        ibtnDown.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (!SingleClick.available()) {
+                    return;
+                }
+                ArrayList<byte[]> cmds = DirectHelper.camera_down();
+                for (byte[] x : cmds){
+                    Log.e("barrel_down", x.toString());
+                    mUdpClient.sendBytes(mServerAddr, mServerPort, x);
+                }
+            }
+        });
+
+        Button streamBtn = (Button) rootView.findViewById(R.id.btn_stream);
         streamBtn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
@@ -96,8 +152,8 @@ public class Esp32CameraFragment extends Fragment{
                         mServerExactAddress = res.first.toString().split(":")[0].replace("/","");
                         mStream = true;
                         connectWebSocket();
-                        ((Button) getActivity().findViewById(R.id.streamBtn)).setBackgroundResource(R.drawable.my_button_bg_2);
-                        ((Button) getActivity().findViewById(R.id.streamBtn)).setTextColor(Color.rgb(0,0,255));
+                        ((Button) getActivity().findViewById(R.id.btn_stream)).setBackgroundResource(R.drawable.my_button_bg_2);
+                        ((Button) getActivity().findViewById(R.id.btn_stream)).setTextColor(Color.rgb(0,0,255));
                         try {
                             mServerAddr = InetAddress.getByName(mServerExactAddress);
                         }catch (Exception e){
@@ -113,8 +169,8 @@ public class Esp32CameraFragment extends Fragment{
                 } else {
                     mStream = false;
                     mWebSocketClient.close();
-                    ((Button) getActivity().findViewById(R.id.streamBtn)).setBackgroundResource(R.drawable.my_button_bg);
-                    ((Button) getActivity().findViewById(R.id.streamBtn)).setTextColor(Color.rgb(255,255,255));
+                    ((Button) getActivity().findViewById(R.id.btn_stream)).setBackgroundResource(R.drawable.my_button_bg);
+                    ((Button) getActivity().findViewById(R.id.btn_stream)).setTextColor(Color.rgb(255,255,255));
                 }
             }
         });
@@ -123,6 +179,9 @@ public class Esp32CameraFragment extends Fragment{
         rivFire.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
+                if (!SingleClick.available()) {
+                    return;
+                }
                 mUdpClient.sendBytes(mServerAddr, mServerPort, mFire);
             }
         });
@@ -135,8 +194,8 @@ public class Esp32CameraFragment extends Fragment{
                 if (!SingleClick.available()) {
                     return;
                 }
-                stick_state.setText("力度:"+String.valueOf(power) +", 方向:" +String.valueOf(direction));
-                ArrayList<byte[]> cmds = DirectHelper.cmd(direction, power);
+                stick_state.setText(DirectHelper.debug_joystck());
+                ArrayList<byte[]> cmds = DirectHelper.joystick(direction, power);
                 for (byte[] x : cmds){
                     Log.e("udpsend", x.toString());
                     mUdpClient.sendBytes(mServerAddr, mServerPort, x);
