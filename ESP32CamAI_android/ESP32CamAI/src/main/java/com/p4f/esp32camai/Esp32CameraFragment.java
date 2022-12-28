@@ -100,6 +100,7 @@ public class Esp32CameraFragment extends Fragment{
             }
         });
 
+        TextView tvBarrel = (TextView)rootView.findViewById(R.id.tv_barrel);
         ImageButton ibtnUp = (ImageButton) rootView.findViewById(R.id.ibtn_barrel_up);
         ibtnUp.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -112,6 +113,7 @@ public class Esp32CameraFragment extends Fragment{
                     Log.e("barrel_up", x.toString());
                     mUdpClient.sendBytes(mServerAddr, mServerPort, x);
                 }
+                tvBarrel.setText(DirectHelper.debug_camera_pos());
             }
         });
 
@@ -127,6 +129,7 @@ public class Esp32CameraFragment extends Fragment{
                     Log.e("barrel_down", x.toString());
                     mUdpClient.sendBytes(mServerAddr, mServerPort, x);
                 }
+                tvBarrel.setText(DirectHelper.debug_camera_pos());
             }
         });
 
@@ -187,6 +190,8 @@ public class Esp32CameraFragment extends Fragment{
         });
 
         TextView stick_state = rootView.findViewById(R.id.stick_state);
+        stick_state.setText(DirectHelper.debug_joystck());
+
         JoystickView joystickView = rootView.findViewById(R.id.joystick);
         joystickView.setOnJoystickMoveListener(new JoystickView.OnJoystickMoveListener() {
             @Override

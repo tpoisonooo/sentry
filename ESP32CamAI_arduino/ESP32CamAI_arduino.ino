@@ -35,8 +35,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // #define DEBUG
 // #define SAVE_IMG
 
-const char* ssid = "linglong";
-const char* password = "12345678";
+// const char* ssid = "linglong";
+// const char* password = "12345678";
+
+const char* ssid = "CU_4myU";
+const char* password = "4r3jgfwr";
 
 // const char* ssid = "haliluqiuqiuhayaya";
 // const char* password = "77552100";
@@ -211,13 +214,13 @@ void setup_pwm() {
   ledcAttachPin(LED_GPIO1, PWM1_CHANNEL);
   ledcAttachPin(LED_GPIO2, PWM2_CHANNEL);
 
-  ledcSetup(PWM0_CHANNEL, 50, 8);
-  ledcSetup(PWM1_CHANNEL, 50, 8);
-  ledcSetup(PWM2_CHANNEL, 50, 8);
+  ledcSetup(PWM0_CHANNEL, 50, 9);
+  ledcSetup(PWM1_CHANNEL, 50, 9);
+  ledcSetup(PWM2_CHANNEL, 50, 9);
 
   // never rotate whole circle !
   // fontend
-  for (int duty = 16; duty < 24; ++duty)
+  for (int duty = 32; duty < 48; ++duty)
   {
     ledcWrite(PWM0_CHANNEL, duty);
     delay(10);
@@ -225,14 +228,14 @@ void setup_pwm() {
   delay(1000);
   
   // leftright
-  for (int duty = 8; duty < 28; ++duty)
+  for (int duty = 16; duty < 56; ++duty)
   {
     ledcWrite(PWM1_CHANNEL, duty);
     delay(10);
   }
   delay(1000);
   // cam updown
-  for (int duty = 10; duty < 20; ++duty)
+  for (int duty = 20; duty < 40; ++duty)
   {
     ledcWrite(PWM2_CHANNEL, duty);
     delay(10);

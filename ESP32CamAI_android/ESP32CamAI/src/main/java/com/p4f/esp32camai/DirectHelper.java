@@ -8,15 +8,15 @@ import java.util.ArrayList;
 import com.p4f.esp32camai.PWM;
 
 public class DirectHelper {
-    private static int FAST = 2;
-    private static int SLOW = 1;
+    private static int FAST = 1;
+    private static int SLOW = 0;
 
     // front back controller
-    private static PWM pwm_fb = new PWM((byte) '0', 16, 24);
+    private static PWM pwm_fb = new PWM((byte) '0', 32, 48);
     // left right controller
-    private static PWM pwm_lr = new PWM((byte) '1', 8, 28);
+    private static PWM pwm_lr = new PWM((byte) '1', 16, 56);
     // camera up down controller
-    private static PWM pwm_ud = new PWM((byte)'2', 10, 20);
+    private static PWM pwm_ud = new PWM((byte)'2', 20, 40);
 
     public static String debug_joystck(){
         return "pwm_fb " + String.valueOf(pwm_fb.value()) + ", pwm_lr " + String.valueOf(pwm_lr.value());
@@ -27,11 +27,11 @@ public class DirectHelper {
     }
 
     public static ArrayList<byte[]> camera_up() {
-        return pwm_ud.command(SLOW);
+        return pwm_ud.command(FAST);
     }
 
     public  static ArrayList<byte[]> camera_down() {
-        return pwm_ud.command(-SLOW);
+        return pwm_ud.command(-FAST);
     }
 
     public static ArrayList<byte[]> joystick(int direction, int power) {
