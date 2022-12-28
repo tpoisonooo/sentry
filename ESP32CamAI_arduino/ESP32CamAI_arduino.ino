@@ -35,9 +35,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // #define DEBUG
 // #define SAVE_IMG
 
-// const char* ssid = "ziroom105";
-// const char* password = "ziroomer002";
-
 const char* ssid = "linglong";
 const char* password = "12345678";
 
@@ -65,7 +62,9 @@ const int LED_BUILT_IN        = 4;
 // const int PIN_SERVO_YAW       = 2;
 const int SERVO_RESOLUTION    = 16;
 unsigned long previousMillisServo = 0;
-const unsigned long intervalServo = 10;
+
+// top fps = 25
+const unsigned long intervalServo = 40;
 
 // I2C display
 // IO15 --- SDA
@@ -74,11 +73,12 @@ SSD1306 display(0x3c, 15, 14);
 
 // pwm
 #define PWM0_CHANNEL (0)
-#define PWM1_CHANNEL (1)
-#define PWM2_CHANNEL (2)
-#define PWM3_CHANNEL (3)
-#define PWM4_CHANNEL (4)
-#define PWM5_CHANNEL (5)
+#define PWM1_CHANNEL (2)
+#define PWM2_CHANNEL (4)
+
+// GPIO 0 is camera clock, not available
+#define LAZER_GPIO  1
+#define FIRE_GPIO 3
 
 
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
@@ -99,7 +99,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
       case WStype_FRAGMENT_BIN_START:
       case WStype_FRAGMENT:
       case WStype_FRAGMENT_FIN:
-          Serial.println(type);
+          // Serial.println(type);
           break;
   }
 }
@@ -113,18 +113,29 @@ int parse_int32(byte* pdata) {
   return ret;
 }
 
+/**
+    final byte[] mRequestConnect      = new byte[]{'w','h','o','a','m','i'};
+    final byte[] mFire = new byte[]{'f','i','r','e'};
+    final byte[] mLaserOn = new byte[]{'l','a','z','e', 'r', 'o', 'n'};
+    final byte[] mLaserOff = new byte[]{'l','a','z','e', 'r', 'o', 'f', 'f'};
+ */
 void processUDPData(){
-  int cb = UDPServer.parsePacket();
+  // int life = 4;
+  int len = 0;
+  // while(life > 0) {
+  // life--;
+  len = UDPServer.parsePacket();
 
-  if (cb) {
+  if (len > 0) {
       UDPServer.read(packetBuffer, RECVLENGTH);
 
       String strPackage = String((const char*)packetBuffer);
 
       // display.drawString(0, 16, strPackage);
       // display.display();
-
       display.clear();
+      display.drawString(0, 32, String(packetBuffer, 4));
+
       if(strPackage.equals("whoami")){
         display.drawString(0,32,"response");
         addrRemote = UDPServer.remoteIP();
@@ -133,31 +144,38 @@ void processUDPData(){
         String res = "ESP32-CAM";
         UDPServer.write((const uint8_t*)res.c_str(),res.length());
         UDPServer.endPacket();
-        Serial.println("response");
-      }
-      // internal LED
-      else if(strPackage.equals("ledon")){
-        display.drawString(0,48, "ledon");
-        digitalWrite(LED_BUILT_IN, HIGH);
-      }else if(strPackage.equals("ledoff")){
-        display.drawString(0,48, "ledoff");
-        digitalWrite(LED_BUILT_IN, LOW);
-      }
-      // control
-      // pwmX占空比
-      // pwm095
-      // pwm188
-      else if(packetBuffer[0] == 'p' && packetBuffer[1]=='w' && packetBuffer[2]=='m') {
+        // Serial.println("response");
+
+      }else if(strPackage.equals("fire")){
+        digitalWrite(FIRE_GPIO, HIGH);
+        delay(40);
+        digitalWrite(FIRE_GPIO, LOW);
+        // life-=3;
+
+      }else if(strPackage.equals("lazeron")){
+        digitalWrite(LAZER_GPIO, HIGH);
+        delay(10);
+
+      }else if(strPackage.equals("lazeroff")){
+        digitalWrite(LAZER_GPIO, LOW);
+        delay(10);
+      
+      } else if(packetBuffer[0] == 'p' && packetBuffer[1]=='w' && packetBuffer[2]=='m') {
+        // control
+
         int duty = parse_int32(packetBuffer + 4);
         int channel = PWM0_CHANNEL;
-
-        if (packetBuffer[3] == '1') {
+        if (packetBuffer[3] == '0') {
+          channel = PWM0_CHANNEL;
+        } else if (packetBuffer[3] == '1') {
           channel = PWM1_CHANNEL;
-          display.drawString(0, 48, String(packetBuffer, 4)+String(duty));
-        } else{
-          display.drawString(0, 32, String(packetBuffer, 4)+String(duty));
+        } else {
+          channel = PWM2_CHANNEL;
         }
-        duty = max(0, min(255, duty));
+
+        display.drawString(16, 48, String(duty));
+
+        // duty = max(8, min(28, duty));
         ledcWrite(channel, duty);
         delay(10);
       }
@@ -165,84 +183,67 @@ void processUDPData(){
 
       memset(packetBuffer, 0, RECVLENGTH);
   }
-
+  //  else {
+  //   break;
+  // }
+  // }
 }
 
-// one function one job
-// 一个函数，只做一件事
-// 一个函数，不要做一堆事
-// 设置 PWM 
+
 void setup_pwm() {
-  display.drawString(0,0,"pwm self-testing..");
+  display.drawString(0,0,"pwm init..");
   // 对象，表示 显示器
   // .display() 函数，
   display.display();
 
-  #define LED_GPIO0   13
-  #define LED_GPIO1   12
-  #define LED_GPIO2   2
-  #define LED_GPIO4   16
-  #define LED_GPIO5   0
-
-
+#define LED_GPIO0   13
+#define LED_GPIO1   12
+#define LED_GPIO2   2
   // pin 引脚
   // Mode 
   pinMode(LED_GPIO0, OUTPUT);
   pinMode(LED_GPIO1, OUTPUT);
   pinMode(LED_GPIO2, OUTPUT);
-  pinMode(LED_GPIO4, OUTPUT);
-  pinMode(LED_GPIO5, OUTPUT);
+  pinMode(LAZER_GPIO, OUTPUT);
+  pinMode(FIRE_GPIO, OUTPUT);
 
-  // PWM 不是硬件实现的 PWM
-  // 要软件控制器
-  // 15
-  // ledc   LED controller
-  // 输出的控制器， attach 附加， pin 管脚
-  // 
   ledcAttachPin(LED_GPIO0, PWM0_CHANNEL);
   ledcAttachPin(LED_GPIO1, PWM1_CHANNEL);
   ledcAttachPin(LED_GPIO2, PWM2_CHANNEL);
-  ledcAttachPin(LED_GPIO4, PWM4_CHANNEL);
-  ledcAttachPin(LED_GPIO5, PWM5_CHANNEL);
-
-  //1s /  50 Hz   =  PWM 20ms , PWM 一个周期
-  // 8 精度， 用 8 个比特表达 PWM 控制精度
-  // 0~255 个数值
-  // 255 ==  100% 占空比
-  // 0 == 0% 占空比
-  // 1 == 1/255 % 占空比
-  // 能控制多么细
 
   ledcSetup(PWM0_CHANNEL, 50, 8);
   ledcSetup(PWM1_CHANNEL, 50, 8);
   ledcSetup(PWM2_CHANNEL, 50, 8);
-  ledcSetup(PWM4_CHANNEL, 50, 8);
-  ledcSetup(PWM5_CHANNEL, 50, 8);
 
-
-  int duty=0;
-  while(duty < 256)
+  // never rotate whole circle !
+  // fontend
+  for (int duty = 16; duty < 24; ++duty)
   {
-
     ledcWrite(PWM0_CHANNEL, duty);
     delay(10);
+  }
+  delay(1000);
+  
+  // leftright
+  for (int duty = 8; duty < 28; ++duty)
+  {
     ledcWrite(PWM1_CHANNEL, duty);
     delay(10);
+  }
+  delay(1000);
+  // cam updown
+  for (int duty = 10; duty < 20; ++duty)
+  {
     ledcWrite(PWM2_CHANNEL, duty);
     delay(10);
-    ledcWrite(PWM4_CHANNEL, duty);
-    delay(10);
-    ledcWrite(PWM5_CHANNEL, duty);
-    delay(10);
-    duty++;
   }
+  delay(1000);
 }
 
 void setup(void) {
-
-  Serial.begin(115200);
-  Serial.print("\n");
-  Serial.setDebugOutput(true);
+  // Serial.begin(115200);
+  // Serial.print("\n");
+  // Serial.setDebugOutput(true);
 
   // init display
   display.init();
@@ -256,7 +257,7 @@ void setup(void) {
   // init camera
   cameraInitState = initCamera();
 
-  Serial.printf("camera init state %d\n", cameraInitState);
+  // Serial.printf("camera init state %d\n", cameraInitState);
 
   if(cameraInitState != 0){
     display.clear();
@@ -266,7 +267,7 @@ void setup(void) {
   }
 
   //WIFI INIT
-  Serial.printf("Connecting to %s\n", ssid);
+  // Serial.printf("Connecting to %s\n", ssid);
   WiFi.begin(ssid, password);
   WiFi.setSleep(false);
   display.clear();
@@ -275,23 +276,19 @@ void setup(void) {
 
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    Serial.print(".");
+    // Serial.print(".");
   }
-  Serial.println("");
-  Serial.print("Connected! IP address: ");
+  // Serial.println("");
+  // Serial.print("Connected! IP address: ");
 
   // display IPv4 addr to OLED
   display.clear();
   display.drawString(0,0,WiFi.localIP().toString());
   display.display();
 
-  Serial.println(WiFi.localIP().toString());
+  // Serial.println(WiFi.localIP().toString());
 
   // start websocket to send Image
-  // http/https --> 不会数据丢失，代价是速度慢、发热
-  // 
-  // tcp/udp  -->  速度快，代码不好写
-  // websocket: 一种 tcp 协议的服务后端
   webSocket.begin();
   webSocket.onEvent(webSocketEvent); // 返回摄像头数据
 
@@ -300,7 +297,7 @@ void setup(void) {
 
 void loop(void) {
   webSocket.loop();
-  if(clientConnected == true){
+  if(clientConnected == true) {
     grabImage(jpgLength, jpgBuff);
     webSocket.sendBIN(camNo, jpgBuff, jpgLength);
     // Serial.print("send img: ");
@@ -313,4 +310,3 @@ void loop(void) {
     processUDPData();
   }
 }
-
