@@ -1,0 +1,3 @@
+ninja: Entering directory `D:\Downloads\ESP32CamAI-master\ESP32CamAI-master\ESP32CamAI_android\ESP32CamAI\.cxx\cmake\debug\x86_64'
+[1/2] Building CXX object CMakeFiles/nanodetncnn.dir/nanodetncnn.cpp.o
+[2/2] Linking CXX shared library D:\Downloads\ESP32CamAI-master\ESP32CamAI-master\ESP32CamAI_android\ESP32CamAI\build\intermediates\cmake\debug\obj\x86_64\libnanodetncnn.so

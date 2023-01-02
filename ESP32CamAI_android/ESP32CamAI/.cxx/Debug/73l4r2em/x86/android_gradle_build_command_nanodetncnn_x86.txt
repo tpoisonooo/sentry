@@ -1,0 +1,7 @@
+Executable : D:\Android\sdk\cmake\3.10.2.4988404\bin\ninja.exe
+arguments : 
+-C
+D:\Downloads\ESP32CamAI-master\ESP32CamAI-master\ESP32CamAI_android\ESP32CamAI\.cxx\Debug\73l4r2em\x86
+nanodetncnn
+jvmArgs : 
+

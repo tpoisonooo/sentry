@@ -15,20 +15,32 @@
             android:layout_width="match_parent"
             android:orientation="vertical"
             android:layout_height="wrap_content">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="选取跟踪目标"/>
+
+            <Spinner
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:entries="@array/target_array"/>
+
             <Button
                 android:id="@+id/btn_track"
                 android:layout_width="match_parent"
-                android:layout_height="80dp"
+                android:layout_height="50dp"
                 android:background="@drawable/my_button_bg"
                 android:textColor="#ffffff"
                 android:minHeight="80dip"
-                android:text="自动跟踪目标" />
+                android:text="开始跟踪" />
 
             <TextView
                 android:id="@+id/tv_track"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="跟踪状态-"/>
+
         </LinearLayout>
 
 
@@ -63,30 +75,51 @@
         <ImageView
             android:id="@+id/imageView"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_alignParentTop="true"
             android:layout_gravity="center|center_vertical"
             android:gravity="center|center_vertical" />
+
+        <TextView
+            android:id="@+id/tv_detect"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <View
+            android:id="@+id/v_show"
+            android:layout_alignParentTop="true"
+            android:layout_gravity="center|center_vertical"
+            android:gravity="center|center_vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+<!--        <Button-->
+<!--            android:id="@+id/btn_test"-->
+<!--            android:text="点击测试"-->
+<!--            android:layout_width="100dp"-->
+<!--            android:layout_height="100dp"/>-->
     </FrameLayout>
+
+
 
     <RelativeLayout
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="1.25">
 
-        <com.makeramen.roundedimageview.RoundedImageView
-            android:id="@+id/riv_fire"
-            android:layout_alignParentBottom="true"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@mipmap/fire"/>
-
-
         <LinearLayout
             android:layout_width="wrap_content"
             android:orientation="vertical"
-            android:layout_centerInParent="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentBottom="true"
             android:layout_height="wrap_content">
+
+
+            <com.makeramen.roundedimageview.RoundedImageView
+                android:id="@+id/riv_fire"
+                android:layout_alignParentBottom="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@mipmap/fire"/>
 
             <TextView
                 android:id="@+id/tv_barrel"
@@ -94,17 +127,11 @@
                 android:layout_height="wrap_content"
                 android:text="炮口↑↓"/>
 
-            <ImageButton
-                android:id="@+id/ibtn_barrel_up"
-                android:layout_width="wrap_content"
-                android:src="@mipmap/barrel_up"
-                android:layout_height="wrap_content"/>
 
-            <ImageButton
-                android:id="@+id/ibtn_barrel_down"
+            <com.zerokol.views.joystickView.JoystickView
+                android:id="@+id/barrel"
                 android:layout_width="wrap_content"
-                android:src="@mipmap/barrel_down"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content" />
         </LinearLayout>
 
 
@@ -117,7 +144,7 @@
             <Button
                 android:id="@+id/btn_stream"
                 android:layout_width="wrap_content"
-                android:layout_height="75dp"
+                android:layout_height="50dp"
                 android:layout_gravity="center"
                 android:background="@drawable/my_button_bg"
                 android:minHeight="80dip"
@@ -127,7 +154,7 @@
             <Button
                 android:id="@+id/btn_laser"
                 android:layout_width="wrap_content"
-                android:layout_height="75dp"
+                android:layout_height="50dp"
                 android:layout_gravity="center"
                 android:background="@drawable/my_button_bg"
                 android:minHeight="80dip"

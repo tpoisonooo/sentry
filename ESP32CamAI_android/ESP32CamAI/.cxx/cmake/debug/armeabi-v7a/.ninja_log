@@ -1,0 +1,7 @@
+# ninja log v5
+0	1028	694266927	CMakeFiles/nanodetncnn.dir/nanodetncnn.cpp.o	4960d3147f6f605
+4	1035	694266927	CMakeFiles/nanodetncnn.dir/ndkcamera.cpp.o	71758627092271d0
+7	1192	694266927	CMakeFiles/nanodetncnn.dir/nanodet.cpp.o	43a69ac242c59c78
+1192	1551	694266927	D:/Downloads/ESP32CamAI-master/ESP32CamAI-master/ESP32CamAI_android/ESP32CamAI/build/intermediates/cmake/debug/obj/armeabi-v7a/libnanodetncnn.so	d66fb97ba4f1d8e4
+5	888	694267230	CMakeFiles/nanodetncnn.dir/nanodetncnn.cpp.o	4960d3147f6f605
+888	1259	694267231	D:/Downloads/ESP32CamAI-master/ESP32CamAI-master/ESP32CamAI_android/ESP32CamAI/build/intermediates/cmake/debug/obj/armeabi-v7a/libnanodetncnn.so	d66fb97ba4f1d8e4

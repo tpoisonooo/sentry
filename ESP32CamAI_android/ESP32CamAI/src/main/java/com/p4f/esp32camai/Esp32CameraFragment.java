@@ -1,9 +1,11 @@
 package com.p4f.esp32camai;
 
+import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Matrix;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Pair;
@@ -20,6 +22,8 @@ import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.SocketAddress;
 import java.net.URI;
@@ -32,7 +36,6 @@ import com.zerokol.views.joystickView.JoystickView;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
-import org.opencv.android.OpenCVLoader;
 
 public class Esp32CameraFragment extends Fragment{
     final String TAG = "ExCameraFragment";
@@ -41,6 +44,7 @@ public class Esp32CameraFragment extends Fragment{
     private String mServerAddressBroadCast = "255.255.255.255";
     InetAddress mServerAddr;
     int mServerPort = 6868;
+    boolean mAuto = false;
 
     // start preview camera
     final byte[] mRequestConnect      = new byte[]{'w','h','o','a','m','i'};
@@ -49,27 +53,35 @@ public class Esp32CameraFragment extends Fragment{
     final byte[] mLaserOff = new byte[]{'l','a','z','e', 'r', 'o', 'f', 'f'};
 
     ImageView mServerImageView;
+    TextView tvDetect;
+    TextView stick_state;
 
     private WebSocketClient mWebSocketClient;
     private String mServerExactAddress;
     private boolean mStream = false;
     private boolean mLaser = false;
 
+    private NanoDetNcnn nanodetncnn = new NanoDetNcnn();
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // init ncnn handle
+        int current_cpugpu = 0;
+        boolean ret_init = nanodetncnn.loadModel(getActivity().getAssets(), current_cpugpu);
+        if (!ret_init)
+        {
+            Log.e(Esp32CameraFragment.class.getName(), "nanodetncnn loadModel failed");
+        }
+
+        // init UDP
         mUdpClient = new UDPSocket(12345);
         mUdpClient.runUdpServer();
 
         try {
             mServerAddr = InetAddress.getByName(mServerAddressBroadCast);
         }catch (Exception e){
-        }
-
-        if (!OpenCVLoader.initDebug()) {
-            Log.d(TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
-            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_4_0, getActivity(), null);
         }
     }
 
@@ -78,7 +90,35 @@ public class Esp32CameraFragment extends Fragment{
         View rootView = inflater.inflate(R.layout.fragment_camera, parent, false);
 
         mServerImageView = (ImageView)rootView.findViewById(R.id.imageView);
+        tvDetect = (TextView) rootView.findViewById(R.id.tv_detect);
         Button lazerBtn = (Button) rootView.findViewById(R.id.btn_laser);
+        TextView tvBarrel = (TextView)rootView.findViewById(R.id.tv_barrel);
+        JoystickView barrel = rootView.findViewById(R.id.barrel);
+        Button streamBtn = (Button) rootView.findViewById(R.id.btn_stream);
+        RoundedImageView rivFire = (RoundedImageView) rootView.findViewById(R.id.riv_fire);
+        stick_state = rootView.findViewById(R.id.stick_state);
+        JoystickView joystickView = rootView.findViewById(R.id.joystick);
+        Button btnTrack = (Button) rootView.findViewById(R.id.btn_track);
+
+        btnTrack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!SingleClick.available()) {
+                    return;
+                }
+
+                if (!mAuto) {
+                    btnTrack.setBackgroundResource(R.drawable.my_button_bg_2);
+                    btnTrack.setTextColor(Color.rgb(0,0,255));
+                    mAuto = true;
+                } else{
+                    btnTrack.setBackgroundResource(R.drawable.my_button_bg);
+                    btnTrack.setTextColor(Color.rgb(255,255,255));
+                    mAuto = false;
+                }
+            }
+        });
+
         lazerBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v){
@@ -100,40 +140,29 @@ public class Esp32CameraFragment extends Fragment{
             }
         });
 
-        TextView tvBarrel = (TextView)rootView.findViewById(R.id.tv_barrel);
-        ImageButton ibtnUp = (ImageButton) rootView.findViewById(R.id.ibtn_barrel_up);
-        ibtnUp.setOnClickListener(new View.OnClickListener() {
+        barrel.setOnJoystickMoveListener(new JoystickView.OnJoystickMoveListener() {
             @Override
-            public void onClick(View view) {
+            public void onValueChanged(int angle, int power, int direction) {
                 if (!SingleClick.available()) {
                     return;
                 }
-                ArrayList<byte[]> cmds = DirectHelper.camera_up();
+                ArrayList<byte[]> cmds = new ArrayList<>();
+                switch (direction){
+                    case JoystickView.FRONT:
+                        cmds = DirectHelper.camera_up();
+                        break;
+                    case JoystickView.BOTTOM:
+                        cmds = DirectHelper.camera_down();
+                        break;
+                }
                 for (byte[] x : cmds){
                     Log.e("barrel_up", x.toString());
                     mUdpClient.sendBytes(mServerAddr, mServerPort, x);
                 }
                 tvBarrel.setText(DirectHelper.debug_camera_pos());
             }
-        });
+        }, JoystickView.DEFAULT_LOOP_INTERVAL);
 
-        ImageButton ibtnDown = (ImageButton) rootView.findViewById(R.id.ibtn_barrel_down);
-        ibtnDown.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (!SingleClick.available()) {
-                    return;
-                }
-                ArrayList<byte[]> cmds = DirectHelper.camera_down();
-                for (byte[] x : cmds){
-                    Log.e("barrel_down", x.toString());
-                    mUdpClient.sendBytes(mServerAddr, mServerPort, x);
-                }
-                tvBarrel.setText(DirectHelper.debug_camera_pos());
-            }
-        });
-
-        Button streamBtn = (Button) rootView.findViewById(R.id.btn_stream);
         streamBtn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
@@ -178,7 +207,7 @@ public class Esp32CameraFragment extends Fragment{
             }
         });
 
-        RoundedImageView rivFire = (RoundedImageView) rootView.findViewById(R.id.riv_fire);
+
         rivFire.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
@@ -189,22 +218,20 @@ public class Esp32CameraFragment extends Fragment{
             }
         });
 
-        TextView stick_state = rootView.findViewById(R.id.stick_state);
         stick_state.setText(DirectHelper.debug_joystck());
 
-        JoystickView joystickView = rootView.findViewById(R.id.joystick);
         joystickView.setOnJoystickMoveListener(new JoystickView.OnJoystickMoveListener() {
             @Override
             public void onValueChanged(int angle, int power, int direction) {
                 if (!SingleClick.available()) {
                     return;
                 }
-                stick_state.setText(DirectHelper.debug_joystck());
                 ArrayList<byte[]> cmds = DirectHelper.joystick(direction, power);
                 for (byte[] x : cmds){
                     Log.e("udpsend", x.toString());
                     mUdpClient.sendBytes(mServerAddr, mServerPort, x);
                 }
+                stick_state.setText(DirectHelper.debug_joystck());
             }
         }, JoystickView.DEFAULT_LOOP_INTERVAL);
 
@@ -238,16 +265,19 @@ public class Esp32CameraFragment extends Fragment{
 
             @Override
             public void onMessage(ByteBuffer message){
+                byte[] imageBytes= new byte[message.remaining()];
+                message.get(imageBytes);
+                final Bitmap bmp=BitmapFactory.decodeByteArray(imageBytes,0,imageBytes.length);
+                if (bmp == null)
+                {
+                    return;
+                }
+
+
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        byte[] imageBytes= new byte[message.remaining()];
-                        message.get(imageBytes);
-                        final Bitmap bmp=BitmapFactory.decodeByteArray(imageBytes,0,imageBytes.length);
-                        if (bmp == null)
-                        {
-                            return;
-                        }
+
                         int viewWidth = mServerImageView.getWidth();
                         Matrix matrix = new Matrix();
 //                        matrix.postRotate(90);
@@ -257,6 +287,33 @@ public class Esp32CameraFragment extends Fragment{
                         mServerImageView.setImageBitmap(Bitmap.createScaledBitmap(bmp_traspose, viewWidth, dispViewH, false));
                     }
                 });
+
+                if (mAuto){
+                    nanodetncnn.append(bmp);
+
+                    float[] last = nanodetncnn.fetch();
+                    final BBox bbox = parse_target(last);
+                    if (bbox.score > 0.0f) {
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                tvDetect.setText(String.valueOf(bbox));
+                            }
+                        });
+                    }
+
+                    if (bbox.score > 0.3f) {
+                        int dir = bbox.direction(bmp.getWidth(), bmp.getHeight());
+                        if (dir != 0) {
+                            ArrayList<byte[]> cmds = DirectHelper.joystick(dir, 100);
+                            for (byte[] x : cmds){
+                                Log.e("udpsend", x.toString());
+                                mUdpClient.sendBytes(mServerAddr, mServerPort, x);
+                            }
+                            stick_state.setText(DirectHelper.debug_joystck());
+                        }
+                    }
+                }
             }
 
             @Override
@@ -271,6 +328,30 @@ public class Esp32CameraFragment extends Fragment{
         Log.e(TAG, "onDestroy");
         mWebSocketClient.close();
         super.onDestroy();
+    }
+
+    public BBox parse_target(float[] arr) {
+        float score = -1.f;
+        BBox ret = new BBox();
+        if (arr.length < 6) {
+            return ret;
+        }
+
+        for (int i = 0; i < arr.length; i+=6) {
+            if (arr[i + 5] > score) {
+                score = arr[i+5];
+
+                ret.x = arr[i];
+                ret.y = arr[i+1];
+                ret.width = arr[i+2];
+                ret.height = arr[i+3];
+                ret.label = Math.round(arr[i+4]);
+                ret.score = Math.round(arr[i+5]);
+            }
+        }
+
+        Log.e(Esp32CameraFragment.class.getName(), String.valueOf(ret));
+        return ret;
     }
 }
 

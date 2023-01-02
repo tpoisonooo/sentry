@@ -1,0 +1,40 @@
+{
+  "stringTable": {},
+  "buildFiles": [
+    "D:\\Downloads\\ESP32CamAI-master\\ESP32CamAI-master\\ESP32CamAI_android\\ESP32CamAI\\src\\main\\jni\\CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "D:\\Android\\sdk\\cmake\\3.10.2.4988404\\bin\\ninja.exe",
+      "-C",
+      "D:\\Downloads\\ESP32CamAI-master\\ESP32CamAI-master\\ESP32CamAI_android\\ESP32CamAI\\.cxx\\Debug\\73l4r2em\\x86_64",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "D:\\Android\\sdk\\cmake\\3.10.2.4988404\\bin\\ninja.exe",
+    "-C",
+    "D:\\Downloads\\ESP32CamAI-master\\ESP32CamAI-master\\ESP32CamAI_android\\ESP32CamAI\\.cxx\\Debug\\73l4r2em\\x86_64",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {
+    "nanodetncnn-Debug-x86_64": {
+      "buildCommandComponents": [
+        "D:\\Android\\sdk\\cmake\\3.10.2.4988404\\bin\\ninja.exe",
+        "-C",
+        "D:\\Downloads\\ESP32CamAI-master\\ESP32CamAI-master\\ESP32CamAI_android\\ESP32CamAI\\.cxx\\Debug\\73l4r2em\\x86_64",
+        "nanodetncnn"
+      ],
+      "buildType": "debug",
+      "abi": "x86_64",
+      "artifactName": "nanodetncnn",
+      "output": "D:\\Downloads\\ESP32CamAI-master\\ESP32CamAI-master\\ESP32CamAI_android\\ESP32CamAI\\build\\intermediates\\cxx\\Debug\\73l4r2em\\obj\\x86_64\\libnanodetncnn.so",
+      "runtimeFiles": []
+    }
+  },
+  "toolchains": {},
+  "cFileExtensions": [],
+  "cppFileExtensions": [
+    "cpp"
+  ]
+}

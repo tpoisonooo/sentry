@@ -1,0 +1,2 @@
+ninja: Entering directory `D:\Downloads\ESP32CamAI-master\ESP32CamAI-master\ESP32CamAI_android\ESP32CamAI\.cxx\Debug\73l4r2em\arm64-v8a'
+ninja: no work to do.

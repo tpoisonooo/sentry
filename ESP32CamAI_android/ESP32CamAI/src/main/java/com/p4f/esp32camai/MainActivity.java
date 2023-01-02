@@ -1,6 +1,7 @@
 package com.p4f.esp32camai;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -11,6 +12,7 @@ import androidx.fragment.app.FragmentManager;
 public class MainActivity extends AppCompatActivity implements FragmentManager.OnBackStackChangedListener{
     Bundle mSavedInstanceState;
     Esp32CameraFragment cameraFragment;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
