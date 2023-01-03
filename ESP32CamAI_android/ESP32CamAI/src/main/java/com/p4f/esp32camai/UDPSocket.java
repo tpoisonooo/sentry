@@ -89,9 +89,13 @@ public class UDPSocket {
             }
         };
 
-        if (Build.VERSION.SDK_INT >= 11)
-            async_client.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-        else async_client.execute();
+        try {
+            if (Build.VERSION.SDK_INT >= 11)
+                async_client.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            else async_client.execute();
+        } catch (Exception e) {
+
+        }
     }
 
     @SuppressLint("NewApi")

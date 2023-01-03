@@ -1,0 +1,30 @@
+{
+  "buildFiles": [
+    "D:\\Downloads\\ESP32CamAI-master\\ESP32CamAI-master\\ESP32CamAI_android\\ESP32CamAI\\src\\main\\jni\\ncnn-20221128-android-vulkan\\x86\\lib\\cmake\\glslang\\glslang-config-version.cmake",
+    "D:\\Downloads\\ESP32CamAI-master\\ESP32CamAI-master\\ESP32CamAI_android\\ESP32CamAI\\src\\main\\jni\\opencv-mobile-2.4.13.7-android\\sdk\\native\\jni\\OpenCVModules_x86.cmake",
+    "D:\\Downloads\\ESP32CamAI-master\\ESP32CamAI-master\\ESP32CamAI_android\\ESP32CamAI\\src\\main\\jni\\CMakeLists.txt",
+    "D:\\Downloads\\ESP32CamAI-master\\ESP32CamAI-master\\ESP32CamAI_android\\ESP32CamAI\\src\\main\\jni\\opencv-mobile-2.4.13.7-android\\sdk\\native\\jni\\OpenCVModules_x86-release.cmake",
+    "D:\\Downloads\\ESP32CamAI-master\\ESP32CamAI-master\\ESP32CamAI_android\\ESP32CamAI\\src\\main\\jni\\ncnn-20221128-android-vulkan\\x86\\lib\\cmake\\glslang\\glslang-targets.cmake",
+    "D:\\Downloads\\ESP32CamAI-master\\ESP32CamAI-master\\ESP32CamAI_android\\ESP32CamAI\\src\\main\\jni\\ncnn-20221128-android-vulkan\\x86\\lib\\cmake\\ncnn\\ncnn.cmake",
+    "D:\\Downloads\\ESP32CamAI-master\\ESP32CamAI-master\\ESP32CamAI_android\\ESP32CamAI\\src\\main\\jni\\ncnn-20221128-android-vulkan\\x86\\lib\\cmake\\ncnn\\ncnn-release.cmake",
+    "D:\\Downloads\\ESP32CamAI-master\\ESP32CamAI-master\\ESP32CamAI_android\\ESP32CamAI\\src\\main\\jni\\opencv-mobile-2.4.13.7-android\\sdk\\native\\jni\\OpenCVConfig-version.cmake",
+    "D:\\Downloads\\ESP32CamAI-master\\ESP32CamAI-master\\ESP32CamAI_android\\ESP32CamAI\\src\\main\\jni\\opencv-mobile-2.4.13.7-android\\sdk\\native\\jni\\OpenCVConfig.cmake",
+    "D:\\Android\\sdk\\ndk\\21.3.6528147\\build\\cmake\\android.toolchain.cmake",
+    "D:\\Downloads\\ESP32CamAI-master\\ESP32CamAI-master\\ESP32CamAI_android\\ESP32CamAI\\src\\main\\jni\\ncnn-20221128-android-vulkan\\x86\\lib\\cmake\\ncnn\\ncnnConfig.cmake",
+    "D:\\Android\\sdk\\ndk\\21.3.6528147\\build\\cmake\\platforms.cmake",
+    "D:\\Downloads\\ESP32CamAI-master\\ESP32CamAI-master\\ESP32CamAI_android\\ESP32CamAI\\src\\main\\jni\\ncnn-20221128-android-vulkan\\x86\\lib\\cmake\\glslang\\glslang-targets-release.cmake",
+    "D:\\Downloads\\ESP32CamAI-master\\ESP32CamAI-master\\ESP32CamAI_android\\ESP32CamAI\\src\\main\\jni\\ncnn-20221128-android-vulkan\\x86\\lib\\cmake\\glslang\\glslang-config.cmake"
+  ],
+  "cleanCommands": [
+    "D:\\Android\\sdk\\cmake\\3.10.2.4988404\\bin\\ninja.exe -C \"D:\\Downloads\\ESP32CamAI-master\\ESP32CamAI-master\\ESP32CamAI_android\\ESP32CamAI\\.cxx\\cmake\\debug\\x86\" clean"
+  ],
+  "buildTargetsCommand": "D:\\Android\\sdk\\cmake\\3.10.2.4988404\\bin\\ninja.exe -C \"D:\\Downloads\\ESP32CamAI-master\\ESP32CamAI-master\\ESP32CamAI_android\\ESP32CamAI\\.cxx\\cmake\\debug\\x86\" {LIST_OF_TARGETS_TO_BUILD}",
+  "libraries": {
+    "nanodetncnn-Debug-x86": {
+      "artifactName": "nanodetncnn",
+      "buildCommand": "D:\\Android\\sdk\\cmake\\3.10.2.4988404\\bin\\ninja.exe -C \"D:\\Downloads\\ESP32CamAI-master\\ESP32CamAI-master\\ESP32CamAI_android\\ESP32CamAI\\.cxx\\cmake\\debug\\x86\" nanodetncnn",
+      "abi": "x86",
+      "output": "D:\\Downloads\\ESP32CamAI-master\\ESP32CamAI-master\\ESP32CamAI_android\\ESP32CamAI\\build\\intermediates\\cmake\\debug\\obj\\x86\\libnanodetncnn.so"
+    }
+  }
+}

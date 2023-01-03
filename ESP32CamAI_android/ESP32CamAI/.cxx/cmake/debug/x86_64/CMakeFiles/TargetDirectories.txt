@@ -1,0 +1,3 @@
+D:/Downloads/ESP32CamAI-master/ESP32CamAI-master/ESP32CamAI_android/ESP32CamAI/.cxx/cmake/debug/x86_64/CMakeFiles/nanodetncnn.dir
+D:/Downloads/ESP32CamAI-master/ESP32CamAI-master/ESP32CamAI_android/ESP32CamAI/.cxx/cmake/debug/x86_64/CMakeFiles/edit_cache.dir
+D:/Downloads/ESP32CamAI-master/ESP32CamAI-master/ESP32CamAI_android/ESP32CamAI/.cxx/cmake/debug/x86_64/CMakeFiles/rebuild_cache.dir

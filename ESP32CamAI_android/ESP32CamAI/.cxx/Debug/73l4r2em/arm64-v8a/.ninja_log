@@ -1,0 +1,26 @@
+# ninja log v5
+1	1190	694326665	CMakeFiles/nanodetncnn.dir/nanodetncnn.cpp.o	19b4ec64d1e169f5
+5	1219	694326665	CMakeFiles/nanodetncnn.dir/nanodet.cpp.o	9fffbd91a3effb2e
+1219	1946	694326665	D:/Downloads/ESP32CamAI-master/ESP32CamAI-master/ESP32CamAI_android/ESP32CamAI/build/intermediates/cxx/Debug/73l4r2em/obj/arm64-v8a/libnanodetncnn.so	ef479efccc28e688
+5	1179	694326858	CMakeFiles/nanodetncnn.dir/nanodetncnn.cpp.o	19b4ec64d1e169f5
+1179	1854	694326859	D:/Downloads/ESP32CamAI-master/ESP32CamAI-master/ESP32CamAI_android/ESP32CamAI/build/intermediates/cxx/Debug/73l4r2em/obj/arm64-v8a/libnanodetncnn.so	ef479efccc28e688
+5	1076	694328813	CMakeFiles/nanodetncnn.dir/nanodetncnn.cpp.o	19b4ec64d1e169f5
+1076	1764	694328814	D:/Downloads/ESP32CamAI-master/ESP32CamAI-master/ESP32CamAI_android/ESP32CamAI/build/intermediates/cxx/Debug/73l4r2em/obj/arm64-v8a/libnanodetncnn.so	ef479efccc28e688
+4	1123	694329073	CMakeFiles/nanodetncnn.dir/nanodetncnn.cpp.o	19b4ec64d1e169f5
+1123	1786	694329074	D:/Downloads/ESP32CamAI-master/ESP32CamAI-master/ESP32CamAI_android/ESP32CamAI/build/intermediates/cxx/Debug/73l4r2em/obj/arm64-v8a/libnanodetncnn.so	ef479efccc28e688
+3	1759	694329165	CMakeFiles/nanodetncnn.dir/nanodetncnn.cpp.o	19b4ec64d1e169f5
+1759	2547	694329166	D:/Downloads/ESP32CamAI-master/ESP32CamAI-master/ESP32CamAI_android/ESP32CamAI/build/intermediates/cxx/Debug/73l4r2em/obj/arm64-v8a/libnanodetncnn.so	ef479efccc28e688
+3	962	694329225	CMakeFiles/nanodetncnn.dir/nanodetncnn.cpp.o	19b4ec64d1e169f5
+962	1593	694329226	D:/Downloads/ESP32CamAI-master/ESP32CamAI-master/ESP32CamAI_android/ESP32CamAI/build/intermediates/cxx/Debug/73l4r2em/obj/arm64-v8a/libnanodetncnn.so	ef479efccc28e688
+4	1031	694329427	CMakeFiles/nanodetncnn.dir/nanodetncnn.cpp.o	19b4ec64d1e169f5
+1032	1700	694329427	D:/Downloads/ESP32CamAI-master/ESP32CamAI-master/ESP32CamAI_android/ESP32CamAI/build/intermediates/cxx/Debug/73l4r2em/obj/arm64-v8a/libnanodetncnn.so	ef479efccc28e688
+2	933	694329491	CMakeFiles/nanodetncnn.dir/nanodetncnn.cpp.o	19b4ec64d1e169f5
+933	1574	694329492	D:/Downloads/ESP32CamAI-master/ESP32CamAI-master/ESP32CamAI_android/ESP32CamAI/build/intermediates/cxx/Debug/73l4r2em/obj/arm64-v8a/libnanodetncnn.so	ef479efccc28e688
+3	929	694329748	CMakeFiles/nanodetncnn.dir/nanodetncnn.cpp.o	19b4ec64d1e169f5
+930	1538	694329748	D:/Downloads/ESP32CamAI-master/ESP32CamAI-master/ESP32CamAI_android/ESP32CamAI/build/intermediates/cxx/Debug/73l4r2em/obj/arm64-v8a/libnanodetncnn.so	ef479efccc28e688
+3	871	694346182	CMakeFiles/nanodetncnn.dir/nanodetncnn.cpp.o	19b4ec64d1e169f5
+871	1443	694346183	D:/Downloads/ESP32CamAI-master/ESP32CamAI-master/ESP32CamAI_android/ESP32CamAI/build/intermediates/cxx/Debug/73l4r2em/obj/arm64-v8a/libnanodetncnn.so	ef479efccc28e688
+3	878	694350565	CMakeFiles/nanodetncnn.dir/nanodetncnn.cpp.o	19b4ec64d1e169f5
+878	1431	694350566	D:/Downloads/ESP32CamAI-master/ESP32CamAI-master/ESP32CamAI_android/ESP32CamAI/build/intermediates/cxx/Debug/73l4r2em/obj/arm64-v8a/libnanodetncnn.so	ef479efccc28e688
+3	994	694353634	CMakeFiles/nanodetncnn.dir/nanodetncnn.cpp.o	19b4ec64d1e169f5
+994	1609	694353635	D:/Downloads/ESP32CamAI-master/ESP32CamAI-master/ESP32CamAI_android/ESP32CamAI/build/intermediates/cxx/Debug/73l4r2em/obj/arm64-v8a/libnanodetncnn.so	ef479efccc28e688

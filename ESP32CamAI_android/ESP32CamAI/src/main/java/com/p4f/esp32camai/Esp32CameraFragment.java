@@ -1,9 +1,11 @@
 package com.p4f.esp32camai;
 
+import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Matrix;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Pair;
@@ -13,12 +15,15 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.SocketAddress;
 import java.net.URI;
@@ -26,11 +31,11 @@ import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
+import com.makeramen.roundedimageview.RoundedImageView;
 import com.zerokol.views.joystickView.JoystickView;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
-import org.opencv.android.OpenCVLoader;
 
 public class Esp32CameraFragment extends Fragment{
     final String TAG = "ExCameraFragment";
@@ -39,35 +44,48 @@ public class Esp32CameraFragment extends Fragment{
     private String mServerAddressBroadCast = "255.255.255.255";
     InetAddress mServerAddr;
     int mServerPort = 6868;
+    boolean mAuto = false;
+
+    float mRatioH = -1;
+    float mRatioW = -1;
 
     // start preview camera
     final byte[] mRequestConnect      = new byte[]{'w','h','o','a','m','i'};
-    // led
-    final byte[] mLedOn = new byte[]{'l','e','d','o','n'};
-    final byte[] mLedOff = new byte[]{'l','e','d','o','f','f'};
+    final byte[] mFire = new byte[]{'f','i','r','e'};
+    final byte[] mLaserOn = new byte[]{'l','a','z','e', 'r', 'o', 'n'};
+    final byte[] mLaserOff = new byte[]{'l','a','z','e', 'r', 'o', 'f', 'f'};
 
     ImageView mServerImageView;
+    TextView tvDetect;
+    TextView stick_state;
+    BBoxView vShow;
 
     private WebSocketClient mWebSocketClient;
     private String mServerExactAddress;
     private boolean mStream = false;
-    private boolean mLed = false;
+    private boolean mLaser = false;
+
+    private NanoDetNcnn nanodetncnn = new NanoDetNcnn();
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // init ncnn handle
+        int current_cpugpu = 1;
+        boolean ret_init = nanodetncnn.loadModel(getActivity().getAssets(), current_cpugpu);
+        if (!ret_init)
+        {
+            Log.e(Esp32CameraFragment.class.getName(), "nanodetncnn loadModel failed");
+        }
+
+        // init UDP
         mUdpClient = new UDPSocket(12345);
         mUdpClient.runUdpServer();
 
         try {
             mServerAddr = InetAddress.getByName(mServerAddressBroadCast);
         }catch (Exception e){
-        }
-
-        if (!OpenCVLoader.initDebug()) {
-            Log.d(TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
-            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_4_0, getActivity(), null);
         }
     }
 
@@ -76,7 +94,80 @@ public class Esp32CameraFragment extends Fragment{
         View rootView = inflater.inflate(R.layout.fragment_camera, parent, false);
 
         mServerImageView = (ImageView)rootView.findViewById(R.id.imageView);
-        Button streamBtn = (Button) rootView.findViewById(R.id.streamBtn);
+        tvDetect = (TextView) rootView.findViewById(R.id.tv_detect);
+        Button lazerBtn = (Button) rootView.findViewById(R.id.btn_laser);
+        TextView tvBarrel = (TextView)rootView.findViewById(R.id.tv_barrel);
+        JoystickView barrel = rootView.findViewById(R.id.barrel);
+        Button streamBtn = (Button) rootView.findViewById(R.id.btn_stream);
+        RoundedImageView rivFire = (RoundedImageView) rootView.findViewById(R.id.riv_fire);
+        stick_state = rootView.findViewById(R.id.stick_state);
+        JoystickView joystickView = rootView.findViewById(R.id.joystick);
+        Button btnTrack = (Button) rootView.findViewById(R.id.btn_track);
+        vShow = (BBoxView) rootView.findViewById(R.id.v_show);
+
+        btnTrack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!SingleClick.available()) {
+                    return;
+                }
+
+                if (!mAuto) {
+                    btnTrack.setBackgroundResource(R.drawable.my_button_bg_2);
+                    btnTrack.setTextColor(Color.rgb(0,0,255));
+                    mAuto = true;
+                } else{
+                    btnTrack.setBackgroundResource(R.drawable.my_button_bg);
+                    btnTrack.setTextColor(Color.rgb(255,255,255));
+                    mAuto = false;
+                }
+            }
+        });
+
+        lazerBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v){
+                if (!SingleClick.available()) {
+                    return;
+                }
+
+                if (!mLaser) {
+                    ((Button) getActivity().findViewById(R.id.btn_laser)).setBackgroundResource(R.drawable.my_button_bg_2);
+                    ((Button) getActivity().findViewById(R.id.btn_laser)).setTextColor(Color.rgb(0,0,255));
+                    mLaser = true;
+                    mUdpClient.sendBytes(mServerAddr, mServerPort, mLaserOn);
+                } else{
+                    ((Button) getActivity().findViewById(R.id.btn_laser)).setBackgroundResource(R.drawable.my_button_bg);
+                    ((Button) getActivity().findViewById(R.id.btn_laser)).setTextColor(Color.rgb(255,255,255));
+                    mLaser = false;
+                    mUdpClient.sendBytes(mServerAddr, mServerPort, mLaserOff);
+                }
+            }
+        });
+
+        barrel.setOnJoystickMoveListener(new JoystickView.OnJoystickMoveListener() {
+            @Override
+            public void onValueChanged(int angle, int power, int direction) {
+                if (!SingleClick.available()) {
+                    return;
+                }
+                ArrayList<byte[]> cmds = new ArrayList<>();
+                switch (direction){
+                    case JoystickView.FRONT:
+                        cmds = DirectHelper.camera_up();
+                        break;
+                    case JoystickView.BOTTOM:
+                        cmds = DirectHelper.camera_down();
+                        break;
+                }
+                for (byte[] x : cmds){
+                    Log.e("barrel_up", x.toString());
+                    mUdpClient.sendBytes(mServerAddr, mServerPort, x);
+                }
+                tvBarrel.setText(DirectHelper.debug_camera_pos());
+            }
+        }, JoystickView.DEFAULT_LOOP_INTERVAL);
+
         streamBtn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
@@ -98,8 +189,8 @@ public class Esp32CameraFragment extends Fragment{
                         mServerExactAddress = res.first.toString().split(":")[0].replace("/","");
                         mStream = true;
                         connectWebSocket();
-                        ((Button) getActivity().findViewById(R.id.streamBtn)).setBackgroundResource(R.drawable.my_button_bg_2);
-                        ((Button) getActivity().findViewById(R.id.streamBtn)).setTextColor(Color.rgb(0,0,255));
+                        ((Button) getActivity().findViewById(R.id.btn_stream)).setBackgroundResource(R.drawable.my_button_bg_2);
+                        ((Button) getActivity().findViewById(R.id.btn_stream)).setTextColor(Color.rgb(0,0,255));
                         try {
                             mServerAddr = InetAddress.getByName(mServerExactAddress);
                         }catch (Exception e){
@@ -115,44 +206,37 @@ public class Esp32CameraFragment extends Fragment{
                 } else {
                     mStream = false;
                     mWebSocketClient.close();
-                    ((Button) getActivity().findViewById(R.id.streamBtn)).setBackgroundResource(R.drawable.my_button_bg);
-                    ((Button) getActivity().findViewById(R.id.streamBtn)).setTextColor(Color.rgb(255,255,255));
+                    ((Button) getActivity().findViewById(R.id.btn_stream)).setBackgroundResource(R.drawable.my_button_bg);
+                    ((Button) getActivity().findViewById(R.id.btn_stream)).setTextColor(Color.rgb(255,255,255));
                 }
             }
         });
 
-        Button ledBtn = (Button) rootView.findViewById(R.id.ledBtn);
-        ledBtn.setOnClickListener(new View.OnClickListener(){
+
+        rivFire.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
-                if (!mLed) {
-                    mLed = true;
-                    ((Button) getActivity().findViewById(R.id.ledBtn)).setBackgroundResource(R.drawable.my_button_bg_2);
-                    ((Button) getActivity().findViewById(R.id.ledBtn)).setTextColor(Color.rgb(0,0,255));
-                    mUdpClient.sendBytes(mServerAddr, mServerPort, mLedOn);
-                }else{
-                    mLed = false;
-                    ((Button) getActivity().findViewById(R.id.ledBtn)).setBackgroundResource(R.drawable.my_button_bg);
-                    ((Button) getActivity().findViewById(R.id.ledBtn)).setTextColor(Color.rgb(255,255,255));
-                    mUdpClient.sendBytes(mServerAddr, mServerPort, mLedOff);
+                if (!SingleClick.available()) {
+                    return;
                 }
+                mUdpClient.sendBytes(mServerAddr, mServerPort, mFire);
             }
         });
 
-        TextView stick_state = rootView.findViewById(R.id.stick_state);
-        JoystickView joystickView = rootView.findViewById(R.id.joystick);
+        stick_state.setText(DirectHelper.debug_joystck());
+
         joystickView.setOnJoystickMoveListener(new JoystickView.OnJoystickMoveListener() {
             @Override
             public void onValueChanged(int angle, int power, int direction) {
                 if (!SingleClick.available()) {
                     return;
                 }
-                stick_state.setText("力度:"+String.valueOf(power) +", 方向:" +String.valueOf(direction));
-                ArrayList<byte[]> cmds = DirectHelper.cmd(direction, power);
+                ArrayList<byte[]> cmds = DirectHelper.joystick(direction, power);
                 for (byte[] x : cmds){
                     Log.e("udpsend", x.toString());
                     mUdpClient.sendBytes(mServerAddr, mServerPort, x);
                 }
+                stick_state.setText(DirectHelper.debug_joystck());
             }
         }, JoystickView.DEFAULT_LOOP_INTERVAL);
 
@@ -186,25 +270,105 @@ public class Esp32CameraFragment extends Fragment{
 
             @Override
             public void onMessage(ByteBuffer message){
+//
+//                2023-01-02 18:02:27.184 26189-26295/com.p4f.esp32camai E/com.p4f.esp32camai.Esp32CameraFragment: onmessage1 1672653747184
+//                2023-01-02 18:02:27.190 26189-26295/com.p4f.esp32camai E/com.p4f.esp32camai.Esp32CameraFragment: onmessage2 1672653747190
+//                2023-01-02 18:02:27.192 26189-26295/com.p4f.esp32camai E/com.p4f.esp32camai.Esp32CameraFragment: onmessage3 1672653747192
+//                2023-01-02 18:02:27.223 26189-26295/com.p4f.esp32camai E/com.p4f.esp32camai.Esp32CameraFragment: onmessage1 1672653747223
+//                2023-01-02 18:02:27.229 26189-26295/com.p4f.esp32camai E/com.p4f.esp32camai.Esp32CameraFragment: onmessage2 1672653747229
+//                2023-01-02 18:02:27.230 26189-26295/com.p4f.esp32camai E/com.p4f.esp32camai.Esp32CameraFragment: onmessage3 1672653747230
+//                2023-01-02 18:02:27.278 26189-26295/com.p4f.esp32camai E/com.p4f.esp32camai.Esp32CameraFragment: onmessage1 1672653747278
+//                2023-01-02 18:02:27.283 26189-26295/com.p4f.esp32camai E/com.p4f.esp32camai.Esp32CameraFragment: onmessage2 1672653747283
+//                2023-01-02 18:02:27.284 26189-26295/com.p4f.esp32camai E/com.p4f.esp32camai.Esp32CameraFragment: onmessage3 1672653747284
+//                2023-01-02 18:02:27.287 26189-26295/com.p4f.esp32camai E/com.p4f.esp32camai.Esp32CameraFragment: onmessage4 1672653747287
+//                2023-01-02 18:02:27.288 26189-26295/com.p4f.esp32camai E/com.p4f.esp32camai.Esp32CameraFragment: onmessage5 1672653747287
+//                2023-01-02 18:02:27.323 26189-26295/com.p4f.esp32camai E/com.p4f.esp32camai.Esp32CameraFragment: onmessage1 1672653747323
+//                2023-01-02 18:02:27.329 26189-26295/com.p4f.esp32camai E/com.p4f.esp32camai.Esp32CameraFragment: onmessage2 1672653747329
+//                2023-01-02 18:02:27.329 26189-26295/com.p4f.esp32camai E/com.p4f.esp32camai.Esp32CameraFragment: onmessage3 1672653747329
+//
+                Log.e(Esp32CameraFragment.class.getName(), "onmessage1 " + String.valueOf(System.currentTimeMillis()));
+
+                byte[] imageBytes= new byte[message.remaining()];
+                message.get(imageBytes);
+                final Bitmap bmp=BitmapFactory.decodeByteArray(imageBytes,0,imageBytes.length);
+                if (bmp == null)
+                {
+                    return;
+                }
+
+                Log.e(Esp32CameraFragment.class.getName(), "onmessage2 " + String.valueOf(System.currentTimeMillis()));
+
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        byte[] imageBytes= new byte[message.remaining()];
-                        message.get(imageBytes);
-                        final Bitmap bmp=BitmapFactory.decodeByteArray(imageBytes,0,imageBytes.length);
-                        if (bmp == null)
-                        {
-                            return;
-                        }
+                        mServerImageView.setImageBitmap(bmp);
+
                         int viewWidth = mServerImageView.getWidth();
-                        Matrix matrix = new Matrix();
-//                        matrix.postRotate(90);
-                        final Bitmap bmp_traspose = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrix, true );
-                        float imagRatio = (float)bmp_traspose.getHeight()/(float)bmp_traspose.getWidth();
-                        int dispViewH = (int)(viewWidth*imagRatio);
-                        mServerImageView.setImageBitmap(Bitmap.createScaledBitmap(bmp_traspose, viewWidth, dispViewH, false));
+                        int viewHeight = mServerImageView.getHeight();
+                        mRatioW = 1.0f;
+                        mRatioH = 1.0f;
                     }
                 });
+
+//                getActivity().runOnUiThread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//
+//                        int viewWidth = mServerImageView.getWidth();
+//                        Matrix matrix = new Matrix();
+////                        matrix.postRotate(90);
+//                        final Bitmap bmp_traspose = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrix, true );
+//                        float ratio = (float)bmp_traspose.getHeight()/(float)bmp_traspose.getWidth();
+//                        int dispViewH = (int)(viewWidth*ratio);
+//                        mServerImageView.setImageBitmap(Bitmap.createScaledBitmap(bmp_traspose, viewWidth, dispViewH, false));
+//
+//                        mRatioH = dispViewH * 1.f / bmp.getHeight();
+//                        mRatioW = viewWidth * 1.f / bmp.getWidth();
+//                    }
+//                });
+
+                if (mAuto){
+                    Log.e(Esp32CameraFragment.class.getName(), "onmessage3 " + String.valueOf(System.currentTimeMillis()));
+
+                    nanodetncnn.append(bmp);
+
+                    float[] last = nanodetncnn.fetch();
+                    final BBox bbox = parse_target(last);
+
+
+                    if (bbox.score > 0.3f) {
+                        Log.e(Esp32CameraFragment.class.getName(), "onmessage4 " + String.valueOf(System.currentTimeMillis()));
+
+                        int dir = bbox.direction(bmp.getWidth(), bmp.getHeight());
+                        if (dir != 0) {
+                            ArrayList<byte[]> cmds = DirectHelper.joystick(dir, 100);
+                            for (byte[] x : cmds){
+                                Log.e("udpsend", x.toString());
+                                mUdpClient.sendBytes(mServerAddr, mServerPort, x);
+                            }
+                        }
+
+                    }
+
+                    if (bbox.score > 0.0f) {
+                        Log.e(Esp32CameraFragment.class.getName(), "onmessage5 " + String.valueOf(System.currentTimeMillis()));
+
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                tvDetect.setText(String.valueOf(bbox));
+
+                                if (mRatioH > 0 && mRatioW > 0) {
+                                    bbox.affine(mRatioW, mRatioH);
+                                    vShow.setMdata(bbox);
+                                    vShow.postInvalidate();
+                                    stick_state.setText(DirectHelper.debug_joystck());
+                                }
+                            }
+                        });
+                    }
+
+                }
             }
 
             @Override
@@ -219,6 +383,30 @@ public class Esp32CameraFragment extends Fragment{
         Log.e(TAG, "onDestroy");
         mWebSocketClient.close();
         super.onDestroy();
+    }
+
+    public BBox parse_target(float[] arr) {
+        float score = -1.f;
+        BBox ret = new BBox();
+        if (arr.length < 6) {
+            return ret;
+        }
+
+        for (int i = 0; i < arr.length; i+=6) {
+            if (arr[i + 5] > score) {
+                score = arr[i+5];
+
+                ret.x = arr[i];
+                ret.y = arr[i+1];
+                ret.width = arr[i+2];
+                ret.height = arr[i+3];
+                ret.label = Math.round(arr[i+4]);
+                ret.score = Math.round(arr[i+5]);
+            }
+        }
+
+        Log.e(Esp32CameraFragment.class.getName(), String.valueOf(ret));
+        return ret;
     }
 }
 

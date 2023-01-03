@@ -2,4 +2,14 @@
     <string name="app_name">阿柴</string>
     <string name="camera_permission_title">Camera permission required</string>
     <string name="camera_permission_message">This app uses camera only for object detection, the information from your camera is not sent or collected anywhere else</string>
+
+    <string-array name="target_array">
+        <item>人体</item>
+        <item>鸟类</item>
+        <item>猫</item>
+        <item>狗</item>
+        <item>羊</item>
+        <item>牛</item>
+        <item>任意目标</item>
+    </string-array>
 </resources>
