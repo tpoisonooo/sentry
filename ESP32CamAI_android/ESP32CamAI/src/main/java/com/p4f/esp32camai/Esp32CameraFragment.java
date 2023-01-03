@@ -46,6 +46,9 @@ public class Esp32CameraFragment extends Fragment{
     int mServerPort = 6868;
     boolean mAuto = false;
 
+    float mRatioH = -1;
+    float mRatioW = -1;
+
     // start preview camera
     final byte[] mRequestConnect      = new byte[]{'w','h','o','a','m','i'};
     final byte[] mFire = new byte[]{'f','i','r','e'};
@@ -55,6 +58,7 @@ public class Esp32CameraFragment extends Fragment{
     ImageView mServerImageView;
     TextView tvDetect;
     TextView stick_state;
+    BBoxView vShow;
 
     private WebSocketClient mWebSocketClient;
     private String mServerExactAddress;
@@ -68,7 +72,7 @@ public class Esp32CameraFragment extends Fragment{
         super.onCreate(savedInstanceState);
 
         // init ncnn handle
-        int current_cpugpu = 0;
+        int current_cpugpu = 1;
         boolean ret_init = nanodetncnn.loadModel(getActivity().getAssets(), current_cpugpu);
         if (!ret_init)
         {
@@ -99,6 +103,7 @@ public class Esp32CameraFragment extends Fragment{
         stick_state = rootView.findViewById(R.id.stick_state);
         JoystickView joystickView = rootView.findViewById(R.id.joystick);
         Button btnTrack = (Button) rootView.findViewById(R.id.btn_track);
+        vShow = (BBoxView) rootView.findViewById(R.id.v_show);
 
         btnTrack.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -265,6 +270,24 @@ public class Esp32CameraFragment extends Fragment{
 
             @Override
             public void onMessage(ByteBuffer message){
+//
+//                2023-01-02 18:02:27.184 26189-26295/com.p4f.esp32camai E/com.p4f.esp32camai.Esp32CameraFragment: onmessage1 1672653747184
+//                2023-01-02 18:02:27.190 26189-26295/com.p4f.esp32camai E/com.p4f.esp32camai.Esp32CameraFragment: onmessage2 1672653747190
+//                2023-01-02 18:02:27.192 26189-26295/com.p4f.esp32camai E/com.p4f.esp32camai.Esp32CameraFragment: onmessage3 1672653747192
+//                2023-01-02 18:02:27.223 26189-26295/com.p4f.esp32camai E/com.p4f.esp32camai.Esp32CameraFragment: onmessage1 1672653747223
+//                2023-01-02 18:02:27.229 26189-26295/com.p4f.esp32camai E/com.p4f.esp32camai.Esp32CameraFragment: onmessage2 1672653747229
+//                2023-01-02 18:02:27.230 26189-26295/com.p4f.esp32camai E/com.p4f.esp32camai.Esp32CameraFragment: onmessage3 1672653747230
+//                2023-01-02 18:02:27.278 26189-26295/com.p4f.esp32camai E/com.p4f.esp32camai.Esp32CameraFragment: onmessage1 1672653747278
+//                2023-01-02 18:02:27.283 26189-26295/com.p4f.esp32camai E/com.p4f.esp32camai.Esp32CameraFragment: onmessage2 1672653747283
+//                2023-01-02 18:02:27.284 26189-26295/com.p4f.esp32camai E/com.p4f.esp32camai.Esp32CameraFragment: onmessage3 1672653747284
+//                2023-01-02 18:02:27.287 26189-26295/com.p4f.esp32camai E/com.p4f.esp32camai.Esp32CameraFragment: onmessage4 1672653747287
+//                2023-01-02 18:02:27.288 26189-26295/com.p4f.esp32camai E/com.p4f.esp32camai.Esp32CameraFragment: onmessage5 1672653747287
+//                2023-01-02 18:02:27.323 26189-26295/com.p4f.esp32camai E/com.p4f.esp32camai.Esp32CameraFragment: onmessage1 1672653747323
+//                2023-01-02 18:02:27.329 26189-26295/com.p4f.esp32camai E/com.p4f.esp32camai.Esp32CameraFragment: onmessage2 1672653747329
+//                2023-01-02 18:02:27.329 26189-26295/com.p4f.esp32camai E/com.p4f.esp32camai.Esp32CameraFragment: onmessage3 1672653747329
+//
+                Log.e(Esp32CameraFragment.class.getName(), "onmessage1 " + String.valueOf(System.currentTimeMillis()));
+
                 byte[] imageBytes= new byte[message.remaining()];
                 message.get(imageBytes);
                 final Bitmap bmp=BitmapFactory.decodeByteArray(imageBytes,0,imageBytes.length);
@@ -273,36 +296,49 @@ public class Esp32CameraFragment extends Fragment{
                     return;
                 }
 
+                Log.e(Esp32CameraFragment.class.getName(), "onmessage2 " + String.valueOf(System.currentTimeMillis()));
 
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        mServerImageView.setImageBitmap(bmp);
 
                         int viewWidth = mServerImageView.getWidth();
-                        Matrix matrix = new Matrix();
-//                        matrix.postRotate(90);
-                        final Bitmap bmp_traspose = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrix, true );
-                        float imagRatio = (float)bmp_traspose.getHeight()/(float)bmp_traspose.getWidth();
-                        int dispViewH = (int)(viewWidth*imagRatio);
-                        mServerImageView.setImageBitmap(Bitmap.createScaledBitmap(bmp_traspose, viewWidth, dispViewH, false));
+                        int viewHeight = mServerImageView.getHeight();
+                        mRatioW = 1.0f;
+                        mRatioH = 1.0f;
                     }
                 });
 
+//                getActivity().runOnUiThread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//
+//                        int viewWidth = mServerImageView.getWidth();
+//                        Matrix matrix = new Matrix();
+////                        matrix.postRotate(90);
+//                        final Bitmap bmp_traspose = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrix, true );
+//                        float ratio = (float)bmp_traspose.getHeight()/(float)bmp_traspose.getWidth();
+//                        int dispViewH = (int)(viewWidth*ratio);
+//                        mServerImageView.setImageBitmap(Bitmap.createScaledBitmap(bmp_traspose, viewWidth, dispViewH, false));
+//
+//                        mRatioH = dispViewH * 1.f / bmp.getHeight();
+//                        mRatioW = viewWidth * 1.f / bmp.getWidth();
+//                    }
+//                });
+
                 if (mAuto){
+                    Log.e(Esp32CameraFragment.class.getName(), "onmessage3 " + String.valueOf(System.currentTimeMillis()));
+
                     nanodetncnn.append(bmp);
 
                     float[] last = nanodetncnn.fetch();
                     final BBox bbox = parse_target(last);
-                    if (bbox.score > 0.0f) {
-                        getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                tvDetect.setText(String.valueOf(bbox));
-                            }
-                        });
-                    }
+
 
                     if (bbox.score > 0.3f) {
+                        Log.e(Esp32CameraFragment.class.getName(), "onmessage4 " + String.valueOf(System.currentTimeMillis()));
+
                         int dir = bbox.direction(bmp.getWidth(), bmp.getHeight());
                         if (dir != 0) {
                             ArrayList<byte[]> cmds = DirectHelper.joystick(dir, 100);
@@ -310,9 +346,28 @@ public class Esp32CameraFragment extends Fragment{
                                 Log.e("udpsend", x.toString());
                                 mUdpClient.sendBytes(mServerAddr, mServerPort, x);
                             }
-                            stick_state.setText(DirectHelper.debug_joystck());
                         }
+
                     }
+
+                    if (bbox.score > 0.0f) {
+                        Log.e(Esp32CameraFragment.class.getName(), "onmessage5 " + String.valueOf(System.currentTimeMillis()));
+
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                tvDetect.setText(String.valueOf(bbox));
+
+                                if (mRatioH > 0 && mRatioW > 0) {
+                                    bbox.affine(mRatioW, mRatioH);
+                                    vShow.setMdata(bbox);
+                                    vShow.postInvalidate();
+                                    stick_state.setText(DirectHelper.debug_joystck());
+                                }
+                            }
+                        });
+                    }
+
                 }
             }
 

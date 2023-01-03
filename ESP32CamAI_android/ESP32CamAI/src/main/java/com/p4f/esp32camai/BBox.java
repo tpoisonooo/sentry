@@ -41,6 +41,14 @@ public class BBox {
         this.score = score;
     }
 
+    public void affine(float scalex, float scaley) {
+        this.x *= scalex;
+        this.width *= scalex;
+
+        this.y *= scaley;
+        this.height *= scaley;
+    }
+
     public int direction(int maxw, int maxh) {
         float centerx = x + (width / 2);
         float centery = y + (height / 2);

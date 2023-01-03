@@ -80,18 +80,16 @@
             android:layout_gravity="center|center_vertical"
             android:gravity="center|center_vertical" />
 
+
+        <com.p4f.esp32camai.BBoxView
+            android:id="@+id/v_show"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
         <TextView
             android:id="@+id/tv_detect"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
-
-        <View
-            android:id="@+id/v_show"
-            android:layout_alignParentTop="true"
-            android:layout_gravity="center|center_vertical"
-            android:gravity="center|center_vertical"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
 <!--        <Button-->
 <!--            android:id="@+id/btn_test"-->
 <!--            android:text="点击测试"-->
